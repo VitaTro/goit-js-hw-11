@@ -27,12 +27,12 @@ const fetchPhotos = async (name, page) => {
         // image_type - тип малюнку. тут хочемо тільки фото (photo)
         // orientation - орієнтація малюнку (horizontal)
         // safesearch - пошук малюнків SFW (Safe For Work). (true)
-        const response = await axios(`https://pixabay.com/api/?${ApiKey}&q={name}&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=${page}`);
+        const response = await axios.get(`https://pixabay.com/api/?${ApiKey}&q={name}&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=${page}`);
     const photo = await response.data;
     checkResults(photo);
     } catch (error) {
-      
-        Notiflix.Notify.failure('Try reloading the page!');
+        console.log(error.message);
+        Notiflix.Notify.failure(error.message);
     }
 };
 
