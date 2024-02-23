@@ -66,7 +66,7 @@ const renderPhotos = (photos) => {
     const markup = photos.hits.map((photo) => {
         return `<div class="photo-card">
                     <a href="${photo.largeImageURL}"> 
-                        <img src="${photo.webformatURL}" alt="${photo.tags}" data-source="${photo.largeImageURL}" loading="lazy" />
+                        <img src="${photo.webformatURL}" alt="${photo.tags}" data-source="${photo.largeImageURL}" loading="lazy" width="250" height="300"/>
                         <div class="info">
                         <p class="info-item"><span><b>Likes</b></span><span>${photo.likes}</span></p>
                         <p class="info-item"><span><b>Views</b></span><span>${photo.views}</span></p>
@@ -89,18 +89,7 @@ const renderScroll = () => {
     })
 }
  
-const infinityScroll = _throttle(() => {
-    if(window.scrollY + window.innerHeight >= document.documentElement.scrollHeight) {
-        if (pageNow < lastPage) {
-            pageNow++;
-            fetchPhotos(currentSearchName, pageNow);     
-            if (pageNow === lastPage) {
-                Notiflix.Notify.info("We're sorry, but you've reached the end of search results."); 
-                moreLoad.classList.remove("is-visible");
-            }  
-        } 
-    }
-}, 250)
+
 
 searchForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -120,7 +109,9 @@ btn.addEventListener('click', () => {
         Notiflix.Notify.info("Loading method has been changed to manual.");    
     }  
     btn.classList.toggle("is-active");
-    if (pageNow !== lastPage){moreLoad.classList.toggle("is-visible");} 
+    if (pageNow !== lastPage){
+        moreLoad.classList.toggle("is-visible");
+    } 
 })
 
 moreLoad.addEventListener('click', () => {
