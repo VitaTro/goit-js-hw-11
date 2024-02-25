@@ -1,23 +1,26 @@
 import _throttle from 'lodash.throttle';
-import axios from "axios";
-import Notiflix from "notiflix";
-import SimpleLightbox from "simplelightbox";
-import "simplelightbox/dist/simple-lightbox.min.css";
+import axios from 'axios';
+import Notiflix from 'notiflix';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
-const ApiKey = "31019872-5203125bb9147bf7b31b034ba"
-const gallery = document.querySelector(".gallery");
-const searchForm= document.querySelector("#search-form");
-const moreLoad = document.querySelector(".load-more");
-const btn = document.querySelector(".btn");
+
+const APIKEY = '31019872-5203125bb9147bf7b31b034ba'
+const gallery = document.querySelector('.gallery');
+const searchForm = document.querySelector('#search-form');
+const moreLoad = document.querySelector('.load-more');
+const btn = document.querySelector('.btn');
+
 
 let pageNow = 1;
-let currentSearchName = "";
+let currentSearchName = '';
 let lastPage = 1;
 let autoScroll = false;
 
 let lightbox = new SimpleLightbox('.gallery a', {
     captionDelay: 300,
-    scrollZoomFactor: false,});
+    scrollZoomFactor: false,
+});
 	
     // код виконує запит до Pixabay для отримання фотографій за заданим ім’ям та сторінкою, 
 // обробляє можливі помилки та виводить повідомлення про помилку в консоль або для користувача
@@ -29,11 +32,10 @@ const fetchPhotos = async (name, page) => {
         // image_type - тип малюнку. тут хочемо тільки фото (photo)
         // orientation - орієнтація малюнку (horizontal)
         // safesearch - пошук малюнків SFW (Safe For Work). (true)
-        const respon = await axios(`https://pixabay.com/api/?key=${ApiKey}&q=${name}&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=${page}`);
-        const photos = await respon.data;
+        const response = await axios.get(`https://pixabay.com/api/?key=${APIKEY}&q=${name}&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=${page}`);
+        const photos = await response.data;
         checkResults(photos);
     } catch(error) {
-       
         Notiflix.Notify.failure(error.message);
     }
 };
@@ -42,14 +44,14 @@ const fetchPhotos = async (name, page) => {
 
 const checkResults = (photos) => {
      if (photos.hits.length === 0) { 
-            Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.");   
+            Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');   
         } else {    
             if (pageNow === 1) {
                 Notiflix.Notify.success(`Hooray! We found ${photos.totalHits} images.`);  //виводить повідомлення і кількість знайдених зображень
                 currentSearchName = name;
                 lastPage = Math.ceil(photos.totalHits / 40);
                 if (lastPage > 1 && autoScroll === false) { // якщо більше 1 сторінки і скролл вимкнений, то додає клас
-                    moreLoad.classList.add("is-visible")
+                    moreLoad.classList.add('is-visible')
                 };
             }
             renderPhotos(photos);
@@ -86,40 +88,49 @@ const renderScroll = () => {
     window.scrollBy({
         top: cardHeight * 2,
         behavior: "smooth",
-    })
+    });
 }
- 
 
+// якщо натиснути на пустий пошук, то видасть помилку
 
-searchForm.addEventListener("submit", (event) => {
+searchForm.addEventListener('submit', (event) => {
     event.preventDefault();
+    const searchQuery = searchForm.searchQuery.value.trim();
+    if(!searchQuery) {
+        Notiflix.Notify.info('Please enter a search query.');
+        gallery.innerHTML = '';
+        moreLoad.classList.remove('is-visible');
+    } else {
     pageNow = 1;
-    gallery.innerHTML = "";
-    fetchPhotos(searchForm.searchQuery.value, pageNow);
-})
+    gallery.innerHTML = '';
+    fetchPhotos(searchQuery, pageNow);
+    moreLoad.classList.remove('is-visible');
+    }
+});
 
 btn.addEventListener('click', () => {
     if (autoScroll === false) {
         autoScroll = true;
-        window.addEventListener('scroll', infinityScroll);
-        Notiflix.Notify.info("Loading method has been changed to auto.");
+        window.addEventListener('scroll', renderScroll);
+        Notiflix.Notify.info('Loading method has been changed to auto.');
     } else {
         autoScroll = false;
-        window.removeEventListener('scroll', infinityScroll);
-        Notiflix.Notify.info("Loading method has been changed to manual.");    
+        window.removeEventListener('scroll', renderScroll);
+        Notiflix.Notify.info('Loading method has been changed to manual.');    
     }  
-    btn.classList.toggle("is-active");
+    btn.classList.toggle('is-active');
     if (pageNow !== lastPage){
-        moreLoad.classList.toggle("is-visible");
+        moreLoad.classList.toggle('is-visible');
     } 
 })
 
 moreLoad.addEventListener('click', () => {
     pageNow++;
-    fetchPhotos(currentSearchName, pageNow);     
+    fetchPhotos(currentSearchName, pageNow); 
+       
     if(pageNow === lastPage) {
-        Notiflix.Notify.info("Sorry, but you have reached the end of the search results."); 
-        moreLoad.classList.remove("is-visible");
+        Notiflix.Notify.info('Sorry, but you have reached the end of the search results.'); 
+        moreLoad.classList.remove('is-visible');
     }  
 })
 
