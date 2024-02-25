@@ -104,7 +104,6 @@ searchForm.addEventListener('submit', (event) => {
     }
 });
 
-
 const infinityScroll = _throttle(() => {
     if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight) {
       if (pageNow < lastPage) {
@@ -112,10 +111,8 @@ const infinityScroll = _throttle(() => {
         fetchPhotos(currentSearchName, pageNow);
         if (pageNow === lastPage) {
           Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
-         
         }
       }
     }
   }, 250);
-  
   window.addEventListener('scroll', infinityScroll);

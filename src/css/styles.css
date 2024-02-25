@@ -15,10 +15,12 @@ img {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  border-radius: 10px;
   
 }
 img:hover {
-  transform: scale(1.03);
+  transform: scale(1.05);
+  transition-duration: 0.4s;
 }
 a {
   text-decoration: none;
