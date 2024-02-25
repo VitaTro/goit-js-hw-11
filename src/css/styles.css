@@ -35,10 +35,9 @@ ul {
    height: 50px;
 }
 .search-form input {
-  margin-top: 10px;
-  margin-left: 500px;
+  margin:10 auto;
   border: none;
-  width: 510px;
+  width: 550px;
   height: 30px;
   padding: 10px 40px 10px 10px;
   border-radius: 3px;
@@ -51,7 +50,7 @@ ul {
 
 .submit-button {
   position: absolute;
-  right: 34%;
+  left: 65%;
   top: 20%;
   border: none;
   height: 30px;

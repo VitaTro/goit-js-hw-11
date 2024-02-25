@@ -3,14 +3,12 @@ import axios from 'axios';
 import Notiflix from 'notiflix';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
+import InfiniteScroll from 'infinite-scroll';
 
 
 const APIKEY = '31019872-5203125bb9147bf7b31b034ba'
 const gallery = document.querySelector('.gallery');
 const searchForm = document.querySelector('#search-form');
-const moreLoad = document.querySelector('.load-more');
-const btn = document.querySelector('.btn');
-
 
 let pageNow = 1;
 let currentSearchName = '';
@@ -48,11 +46,9 @@ const checkResults = (photos) => {
         } else {    
             if (pageNow === 1) {
                 Notiflix.Notify.success(`Hooray! We found ${photos.totalHits} images.`);  //виводить повідомлення і кількість знайдених зображень
-                currentSearchName = name;
+                currentSearchName = photos.hits[0].tags;
                 lastPage = Math.ceil(photos.totalHits / 40);
-                if (lastPage > 1 && autoScroll === false) { // якщо більше 1 сторінки і скролл вимкнений, то додає клас
-                    moreLoad.classList.add('is-visible')
-                };
+               
             }
             renderPhotos(photos);
             lightbox.refresh();
@@ -99,38 +95,27 @@ searchForm.addEventListener('submit', (event) => {
     if(!searchQuery) {
         Notiflix.Notify.info('Please enter a search query.');
         gallery.innerHTML = '';
-        moreLoad.classList.remove('is-visible');
+        
     } else {
     pageNow = 1;
     gallery.innerHTML = '';
     fetchPhotos(searchQuery, pageNow);
-    moreLoad.classList.remove('is-visible');
+    
     }
 });
 
-btn.addEventListener('click', () => {
-    if (autoScroll === false) {
-        autoScroll = true;
-        window.addEventListener('scroll', renderScroll);
-        Notiflix.Notify.info('Loading method has been changed to auto.');
-    } else {
-        autoScroll = false;
-        window.removeEventListener('scroll', renderScroll);
-        Notiflix.Notify.info('Loading method has been changed to manual.');    
-    }  
-    btn.classList.toggle('is-active');
-    if (pageNow !== lastPage){
-        moreLoad.classList.toggle('is-visible');
-    } 
-})
 
-moreLoad.addEventListener('click', () => {
-    pageNow++;
-    fetchPhotos(currentSearchName, pageNow); 
-       
-    if(pageNow === lastPage) {
-        Notiflix.Notify.info('Sorry, but you have reached the end of the search results.'); 
-        moreLoad.classList.remove('is-visible');
-    }  
-})
-
+const infinityScroll = _throttle(() => {
+    if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight) {
+      if (pageNow < lastPage) {
+        pageNow++;
+        fetchPhotos(currentSearchName, pageNow);
+        if (pageNow === lastPage) {
+          Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
+         
+        }
+      }
+    }
+  }, 250);
+  
+  window.addEventListener('scroll', infinityScroll);
