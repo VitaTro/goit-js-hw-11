@@ -1,10 +1,7 @@
-import _throttle from 'lodash.throttle';
 import axios from 'axios';
 import Notiflix from 'notiflix';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-import InfiniteScroll from 'infinite-scroll';
-
 
 const APIKEY = '42470920-96122d8b93373a33cc6d0556a';
 const gallery = document.querySelector('.gallery');
@@ -13,7 +10,7 @@ const searchForm = document.querySelector('#search-form');
 let pageNow = 1;
 let currentSearchName = '';
 let lastPage = 1;
-
+let searchQuery = '';
 
 let lightbox = new SimpleLightbox('.gallery a', {
     captionDelay: 300,
@@ -25,19 +22,30 @@ let lightbox = new SimpleLightbox('.gallery a', {
 
 const fetchPhotos = async (name, page) => {
     try {
-        // key - твій унікальний код доступу API.
-        // q - термін, який хочемо знайти (в даному випадку це ті малюнки, які шукатиме користувач) 
-        // image_type - тип малюнку. тут хочемо тільки фото (photo)
-        // orientation - орієнтація малюнку (horizontal)
-        // safesearch - пошук малюнків SFW (Safe For Work). (true)
-       const response = await axios.get(`https://pixabay.com/api/?key=${APIKEY}&q=${name}&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=${page}`);
-    const photos =  response.data;
+//         // key - твій унікальний код доступу API.
+//         // q - термін, який хочемо знайти (в даному випадку це ті малюнки, які шукатиме користувач) 
+//         // image_type - тип малюнку. тут хочемо тільки фото (photo)
+//         // orientation - орієнтація малюнку (horizontal)
+//         // safesearch - пошук малюнків SFW (Safe For Work). (true)
+       const response = await axios(`https://pixabay.com/api/?key=${APIKEY}&q=${name}&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=${page}`);
+    const photos = await response.data;
     checkResults(photos);
   } catch (error) {
     Notiflix.Notify.failure(error.message);
   }
 };
-
+// function getData(data) {
+//     let searchParams = new URLSearchParams ({
+//         key: APIKEY,
+//         q: data,
+//         image_type: 'photo',
+//         orientation:'horizontal',
+//         safesearch: 'true',
+//         per_page: 40,
+//         page: page,
+//     });
+//     let url = `https://pixabay.com/api/?${searchParams}`;
+// }
 
 // якщо збігів немає, то виводить помилку
 
@@ -47,15 +55,17 @@ const checkResults = (photos) => {
         } else {    
             if (pageNow === 1) {
                 Notiflix.Notify.success(`Hooray! We found ${photos.totalHits} images.`);  //виводить повідомлення і кількість знайдених зображень
-                currentSearchName = photos.hits[0].tags;
+                // currentSearchName = photos.hits[0].tags;
+                const searchQuery = searchForm.searchQuery.value.trim();
+                currentSearchName = searchQuery;  //ГОЛОВНА ПОМИЛКА, яка не давала мені одне ім'я в пошуку
                 lastPage = Math.ceil(photos.totalHits / 40);
-               
+            //    console.log(`function checkResults - currentSearchName : ${currentSearchName}`);
             }
             renderPhotos(photos);
-            lightbox.refresh();
-            if (pageNow > 1) {
-                renderScroll()
-            }
+           lightbox.refresh();
+           if(pageNow > 1) {
+            renderScroll();
+           }
         }   
 };
 
@@ -100,11 +110,12 @@ if(pageNow === lastPage) {
 
 searchForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    const searchQuery = searchForm.searchQuery.value.trim();
+    searchQuery = searchForm.searchQuery.value.trim();
+    
     if(!searchQuery) {
         Notiflix.Notify.info('Please enter a search query.');
         gallery.innerHTML = '';
-        
+        pageNow = 1;
     } else {
     pageNow = 1;
     gallery.innerHTML = '';
@@ -113,16 +124,14 @@ searchForm.addEventListener('submit', (event) => {
     }
 });
 
-const infinityScroll = _throttle(() => {
-  if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight) {
-    if (pageNow < lastPage) {
-      pageNow++;
-      fetchPhotos(currentSearchName, pageNow);
-      if (pageNow === lastPage) {
+window. addEventListener('scroll', () => {
+    if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight) {
+        if (pageNow < lastPage) {
+        pageNow++;
+        fetchPhotos(currentSearchName, pageNow);
+       if (pageNow === lastPage) {
         Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
       }
-    }
-  }
-
-}, 250);
-  window.addEventListener('scroll', infinityScroll);
+    }}
+    });
+ 
