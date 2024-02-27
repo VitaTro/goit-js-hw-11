@@ -63,11 +63,13 @@ const checkResults = (photos) => {
 
 const renderPhotos = (photos) => {
     const markup = photos.hits
-      .map((photo) => `
+      .map((photo) => {
+    return `
         <div class="photo-card">
           <a href="${photo.largeImageURL}">
             <img src="${photo.webformatURL}" alt="${photo.tags}" 
-            data-source="${photo.largeImageURL}" loading="lazy" width="250" height="300"/>
+            data-source="${photo.largeImageURL}" 
+            loading="lazy" width="250" height="300"/>
             <div class="info">
               <p class="info-item"><span><b>Likes</b></span><span>${photo.likes}</span></p>
               <p class="info-item"><span><b>Views</b></span><span>${photo.views}</span></p>
@@ -76,7 +78,7 @@ const renderPhotos = (photos) => {
             </div>
           </a>
         </div>
-      `)
+      `})
       .join('');
   
     gallery.innerHTML += markup;
@@ -106,8 +108,8 @@ searchForm.addEventListener('submit', (event) => {
     } else {
     pageNow = 1;
     gallery.innerHTML = '';
+    currentSearchName = searchQuery;
     fetchPhotos(searchQuery, pageNow);
-    
     }
 });
 
