@@ -6,7 +6,7 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 import InfiniteScroll from 'infinite-scroll';
 
 
-const APIKEY = '31019872-5203125bb9147bf7b31b034ba';
+const APIKEY = '42470920-96122d8b93373a33cc6d0556a';
 const gallery = document.querySelector('.gallery');
 const searchForm = document.querySelector('#search-form');
 
