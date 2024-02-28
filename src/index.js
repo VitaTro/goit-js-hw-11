@@ -1,16 +1,21 @@
-import axios from 'axios';
-import Notiflix from 'notiflix';
-import SimpleLightbox from 'simplelightbox';
-import 'simplelightbox/dist/simple-lightbox.min.css';
+import axios from 'axios';  //для асинхронних http-запитів, корисна для CRUD
+import Notiflix from 'notiflix';   // щоб збоку виводились повідомлення 
+import SimpleLightbox from 'simplelightbox';  // щоб галерея з фото збільшувалась
+import 'simplelightbox/dist/simple-lightbox.min.css'; // css до збільшеної галереї
+import _throttle from 'lodash.throttle';  // дозволяє блокувати виклики
 
 const APIKEY = '42470920-96122d8b93373a33cc6d0556a';
 const gallery = document.querySelector('.gallery');
 const searchForm = document.querySelector('#search-form');
+const moreLoad = document.querySelector('.load-more');
+const btn = document.querySelector('.btn');
 
 let pageNow = 1;
 let currentSearchName = '';
 let lastPage = 1;
 let searchQuery = '';
+let autoScroll = false;
+
 
 let lightbox = new SimpleLightbox('.gallery a', {
     captionDelay: 300,
@@ -59,13 +64,19 @@ const checkResults = (photos) => {
                 const searchQuery = searchForm.searchQuery.value.trim();
                 currentSearchName = searchQuery;  //ГОЛОВНА ПОМИЛКА, яка не давала мені одне ім'я в пошуку
                 lastPage = Math.ceil(photos.totalHits / 40);
-            //    console.log(`function checkResults - currentSearchName : ${currentSearchName}`);
+                if (lastPage > 1 && autoScroll === false) { // якщо більше 1 сторінки і скролл вимкнений, то додає клас
+                  moreLoad.classList.add('is-visible')
+              };
             }
             renderPhotos(photos);
            lightbox.refresh();
            if(pageNow > 1) {
             renderScroll();
            }
+           if (pageNow === lastPage) {
+            Notiflix.Notify.info("We're sorry, but you've reached the end of search results."); 
+            moreLoad.classList.remove("is-visible");
+          }
         }   
 };
 
@@ -101,37 +112,64 @@ const renderScroll = () => {
         top: cardHeight * 2,
         behavior: "smooth",
     });
-if(pageNow === lastPage) {
-    Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
-}
 };
+
 
 // якщо натиснути на пустий пошук, то видасть помилку
 
 searchForm.addEventListener('submit', (event) => {
     event.preventDefault();
     searchQuery = searchForm.searchQuery.value.trim();
-    
     if(!searchQuery) {
-        Notiflix.Notify.info('Please enter a search query.');
-        gallery.innerHTML = '';
-        pageNow = 1;
-    } else {
-    pageNow = 1;
-    gallery.innerHTML = '';
-    currentSearchName = searchQuery;
-    fetchPhotos(searchQuery, pageNow);
-    }
+      Notiflix.Notify.info('Please enter a search query.');
+      gallery.innerHTML = '';
+      pageNow = 1;
+    }else if(searchQuery.length < 3) {
+      Notiflix.Notify.info('Please enter a search query with at least 3 letters.');
+  } else {
+  pageNow = 1;
+  gallery.innerHTML = '';
+  currentSearchName = searchQuery;
+  fetchPhotos(searchQuery, pageNow);
+  }
 });
 
-window. addEventListener('scroll', () => {
-    if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight) {
-        if (pageNow < lastPage) {
-        pageNow++;
-        fetchPhotos(currentSearchName, pageNow);
-       if (pageNow === lastPage) {
-        Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
-      }
-    }}
-    });
+btn.addEventListener('click', () => {
+  if (autoScroll === false) {
+      autoScroll = true;
+      window.addEventListener('scroll', infinityScroll);
+      Notiflix.Notify.info('Loading method has been changed to auto.');
+  } else {
+      autoScroll = false;
+      window.removeEventListener('scroll', infinityScroll);
+      Notiflix.Notify.info('Loading method has been changed to manual.');    
+  }  
+  btn.classList.toggle('is-active');
+  if (pageNow !== lastPage){
+      moreLoad.classList.toggle('is-visible');
+  } 
+})
+
+moreLoad.addEventListener('click', () => {
+  pageNow++;
+  fetchPhotos(currentSearchName, pageNow); 
+     
+  if(pageNow === lastPage) {
+      Notiflix.Notify.info('Sorry, but you have reached the end of the search results.'); 
+      moreLoad.classList.remove('is-visible');
+  }  
+})
+
+const infinityScroll = _throttle(() => {
+  if(window.scrollY + window.innerHeight >= document.documentElement.scrollHeight){
+      if (actualPage < lastPage) {
+          actualPage++;
+          fetchPhotos(currentSearchName, actualPage);     
+          if (actualPage === lastPage) {
+              Notiflix.Notify.info("We're sorry, but you've reached the end of search results."); 
+              btnMore.classList.remove("is-visible");
+          }  
+      } 
+  }
+}, 300);
  
